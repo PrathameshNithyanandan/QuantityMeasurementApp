@@ -1,13 +1,10 @@
 public class QuantityMeasurementApp {
 
-    // UC10: Generic Quantity Class with Unit Interface for Multi-Category Support
-    // Unit interface for all measurement types
     interface Unit {
                 double getConversionFactor();
                 String name();
     }
 
-    // UC8: LengthUnit implementing Unit interface
     enum LengthUnit implements Unit {
                 INCHES(1.0), FEET(12.0), YARD(36.0);
                 private final double factor;
@@ -15,7 +12,6 @@ public class QuantityMeasurementApp {
                 public double getConversionFactor() { return factor; }
     }
 
-    // UC9: WeightUnit implementing Unit interface
     enum WeightUnit implements Unit {
                 GRAM(1.0), KILOGRAM(1000.0), TONNE(1000000.0);
                 private final double factor;
@@ -23,7 +19,17 @@ public class QuantityMeasurementApp {
                 public double getConversionFactor() { return factor; }
     }
 
-    // UC10: Generic Quantity<T extends Unit> for multi-category support
+    // UC11: Volume Measurement (Litre, Millilitre, Gallon)
+    // Base unit: Millilitre (1 Litre = 1000 ml, 1 Gallon = 3785.41 ml)
+    enum VolumeUnit implements Unit {
+                MILLILITRE(1.0),
+                LITRE(1000.0),
+                GALLON(3785.41);
+                private final double factor;
+                VolumeUnit(double f) { this.factor = f; }
+                public double getConversionFactor() { return factor; }
+    }
+
     static class Quantity<T extends Unit> {
                 private double value;
                 private T unit;
@@ -35,10 +41,7 @@ public class QuantityMeasurementApp {
 
             public double getValue() { return value; }
                 public T getUnit() { return unit; }
-
-            public double toBaseUnit() {
-                            return value * unit.getConversionFactor();
-            }
+                public double toBaseUnit() { return value * unit.getConversionFactor(); }
 
             public boolean isEqualTo(Quantity<T> other) {
                             return Double.compare(this.toBaseUnit(), other.toBaseUnit()) == 0;
@@ -57,31 +60,29 @@ public class QuantityMeasurementApp {
             }
 
             @Override
-                public String toString() {
-                                return value + " " + unit.name().toLowerCase();
-                }
+                public String toString() { return value + " " + unit.name().toLowerCase(); }
     }
 
     public static void main(String[] args) {
-                // UC10: Using generic Quantity class for Length
-            Quantity<LengthUnit> l1 = new Quantity<>(1.0, LengthUnit.FEET);
-                Quantity<LengthUnit> l2 = new Quantity<>(12.0, LengthUnit.INCHES);
-                System.out.println("UC10 Length: 1 foot == 12 inches? " + l1.isEqualTo(l2));
+                // UC10: Length and Weight
+            System.out.println("UC10: 1ft == 12in? " + new Quantity<>(1.0, LengthUnit.FEET).isEqualTo(new Quantity<>(12.0, LengthUnit.INCHES)));
+                System.out.println("UC10: 1kg == 1000g? " + new Quantity<>(1.0, WeightUnit.KILOGRAM).isEqualTo(new Quantity<>(1000.0, WeightUnit.GRAM)));
 
-            Quantity<LengthUnit> l3 = new Quantity<>(1.0, LengthUnit.YARD);
-                Quantity<LengthUnit> l4 = new Quantity<>(3.0, LengthUnit.FEET);
-                System.out.println("UC10 Length: 1 yard == 3 feet? " + l3.isEqualTo(l4));
+            // UC11: Volume Measurement (Litre, Millilitre, Gallon)
+            Quantity<VolumeUnit> v1 = new Quantity<>(1.0, VolumeUnit.LITRE);
+                Quantity<VolumeUnit> v2 = new Quantity<>(1000.0, VolumeUnit.MILLILITRE);
+                System.out.println("UC11: 1 litre == 1000 ml? " + v1.isEqualTo(v2));
 
-            // UC10: Using generic Quantity class for Weight
-            Quantity<WeightUnit> w1 = new Quantity<>(1.0, WeightUnit.KILOGRAM);
-                Quantity<WeightUnit> w2 = new Quantity<>(1000.0, WeightUnit.GRAM);
-                System.out.println("UC10 Weight: 1 kg == 1000 g? " + w1.isEqualTo(w2));
+            Quantity<VolumeUnit> v3 = new Quantity<>(1.0, VolumeUnit.GALLON);
+                System.out.println("UC11: 1 gallon in ml = " + v3.convertTo(VolumeUnit.MILLILITRE));
+                System.out.println("UC11: 1 gallon in litres = " + v3.convertTo(VolumeUnit.LITRE));
 
-            Quantity<WeightUnit> sumW = w1.add(w2);
-                System.out.println("UC10 Weight: 1 kg + 1000 g = " + sumW);
+            Quantity<VolumeUnit> sumV = v1.add(v2);
+                System.out.println("UC11: 1 litre + 1000 ml = " + sumV);
 
-            // UC10: Convert
-            Quantity<LengthUnit> converted = l1.convertTo(LengthUnit.INCHES);
-                System.out.println("UC10 Length: 1 foot in inches = " + converted);
+            // Check equality across units
+            Quantity<VolumeUnit> v4 = new Quantity<>(1.0, VolumeUnit.GALLON);
+                Quantity<VolumeUnit> v5 = new Quantity<>(3.785, VolumeUnit.LITRE);
+                System.out.println("UC11: 1 gallon approx equal to 3.785 litre? " + (Math.abs(v4.toBaseUnit() - v5.toBaseUnit()) < 10));
     }
 }
