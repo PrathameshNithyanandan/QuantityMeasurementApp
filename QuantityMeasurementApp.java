@@ -1,100 +1,87 @@
 public class QuantityMeasurementApp {
 
-    // UC8: LengthUnit Enum (standalone)
-    enum LengthUnit {
+    // UC10: Generic Quantity Class with Unit Interface for Multi-Category Support
+    // Unit interface for all measurement types
+    interface Unit {
+                double getConversionFactor();
+                String name();
+    }
+
+    // UC8: LengthUnit implementing Unit interface
+    enum LengthUnit implements Unit {
                 INCHES(1.0), FEET(12.0), YARD(36.0);
                 private final double factor;
                 LengthUnit(double f) { this.factor = f; }
-                public double getFactor() { return factor; }
+                public double getConversionFactor() { return factor; }
     }
 
-    // UC9: WeightUnit Enum (new measurement category)
-    enum WeightUnit {
+    // UC9: WeightUnit implementing Unit interface
+    enum WeightUnit implements Unit {
                 GRAM(1.0), KILOGRAM(1000.0), TONNE(1000000.0);
                 private final double factor;
                 WeightUnit(double f) { this.factor = f; }
-                public double getFactor() { return factor; }
+                public double getConversionFactor() { return factor; }
     }
 
-    // Generic Quantity class for length
-    static class LengthQuantity {
+    // UC10: Generic Quantity<T extends Unit> for multi-category support
+    static class Quantity<T extends Unit> {
                 private double value;
-                private LengthUnit unit;
+                private T unit;
 
-            public LengthQuantity(double value, LengthUnit unit) {
+            public Quantity(double value, T unit) {
                             this.value = value;
                             this.unit = unit;
             }
 
-            public double toBaseUnit() { return value * unit.getFactor(); }
+            public double getValue() { return value; }
+                public T getUnit() { return unit; }
 
-            public boolean isEqualTo(LengthQuantity other) {
+            public double toBaseUnit() {
+                            return value * unit.getConversionFactor();
+            }
+
+            public boolean isEqualTo(Quantity<T> other) {
                             return Double.compare(this.toBaseUnit(), other.toBaseUnit()) == 0;
             }
 
-            public LengthQuantity convertTo(LengthUnit target) {
-                            return new LengthQuantity(toBaseUnit() / target.getFactor(), target);
+            public Quantity<T> convertTo(T targetUnit) {
+                            return new Quantity<>(toBaseUnit() / targetUnit.getConversionFactor(), targetUnit);
             }
 
-            public LengthQuantity add(LengthQuantity other) {
-                            return new LengthQuantity(toBaseUnit() + other.toBaseUnit(), LengthUnit.INCHES);
+            public Quantity<T> add(Quantity<T> other) {
+                            return new Quantity<>(toBaseUnit() + other.toBaseUnit(), this.unit);
             }
 
-            public LengthQuantity addWithTarget(LengthQuantity other, LengthUnit target) {
-                            return new LengthQuantity((toBaseUnit() + other.toBaseUnit()) / target.getFactor(), target);
-            }
-
-            @Override
-                public String toString() { return value + " " + unit.name().toLowerCase(); }
-    }
-
-    // UC9: Weight Quantity class
-    static class WeightQuantity {
-                private double value;
-                private WeightUnit unit;
-
-            public WeightQuantity(double value, WeightUnit unit) {
-                            this.value = value;
-                            this.unit = unit;
-            }
-
-            public double toBaseUnit() { return value * unit.getFactor(); }
-
-            public boolean isEqualTo(WeightQuantity other) {
-                            return Double.compare(this.toBaseUnit(), other.toBaseUnit()) == 0;
-            }
-
-            public WeightQuantity convertTo(WeightUnit target) {
-                            return new WeightQuantity(toBaseUnit() / target.getFactor(), target);
-            }
-
-            public WeightQuantity add(WeightQuantity other) {
-                            return new WeightQuantity(toBaseUnit() + other.toBaseUnit(), WeightUnit.GRAM);
+            public Quantity<T> subtract(Quantity<T> other) {
+                            return new Quantity<>(toBaseUnit() - other.toBaseUnit(), this.unit);
             }
 
             @Override
-                public String toString() { return value + " " + unit.name().toLowerCase(); }
+                public String toString() {
+                                return value + " " + unit.name().toLowerCase();
+                }
     }
 
     public static void main(String[] args) {
-                // UC8: Length operations
-            LengthQuantity l1 = new LengthQuantity(1.0, LengthUnit.FEET);
-                LengthQuantity l2 = new LengthQuantity(12.0, LengthUnit.INCHES);
-                System.out.println("UC8: 1 foot == 12 inches? " + l1.isEqualTo(l2));
+                // UC10: Using generic Quantity class for Length
+            Quantity<LengthUnit> l1 = new Quantity<>(1.0, LengthUnit.FEET);
+                Quantity<LengthUnit> l2 = new Quantity<>(12.0, LengthUnit.INCHES);
+                System.out.println("UC10 Length: 1 foot == 12 inches? " + l1.isEqualTo(l2));
 
-            // UC9: Weight Measurement
-            WeightQuantity w1 = new WeightQuantity(1.0, WeightUnit.KILOGRAM);
-                WeightQuantity w2 = new WeightQuantity(1000.0, WeightUnit.GRAM);
-                System.out.println("UC9: 1 kg == 1000 grams? " + w1.isEqualTo(w2));
+            Quantity<LengthUnit> l3 = new Quantity<>(1.0, LengthUnit.YARD);
+                Quantity<LengthUnit> l4 = new Quantity<>(3.0, LengthUnit.FEET);
+                System.out.println("UC10 Length: 1 yard == 3 feet? " + l3.isEqualTo(l4));
 
-            WeightQuantity w3 = new WeightQuantity(1.0, WeightUnit.TONNE);
-                WeightQuantity w4 = new WeightQuantity(1000.0, WeightUnit.KILOGRAM);
-                System.out.println("UC9: 1 tonne == 1000 kg? " + w3.isEqualTo(w4));
+            // UC10: Using generic Quantity class for Weight
+            Quantity<WeightUnit> w1 = new Quantity<>(1.0, WeightUnit.KILOGRAM);
+                Quantity<WeightUnit> w2 = new Quantity<>(1000.0, WeightUnit.GRAM);
+                System.out.println("UC10 Weight: 1 kg == 1000 g? " + w1.isEqualTo(w2));
 
-            WeightQuantity converted = w1.convertTo(WeightUnit.GRAM);
-                System.out.println("UC9: 1 kg converted to grams = " + converted);
+            Quantity<WeightUnit> sumW = w1.add(w2);
+                System.out.println("UC10 Weight: 1 kg + 1000 g = " + sumW);
 
-            WeightQuantity sumWeight = w1.add(w2);
-                System.out.println("UC9: 1 kg + 1000 g = " + sumWeight);
+            // UC10: Convert
+            Quantity<LengthUnit> converted = l1.convertTo(LengthUnit.INCHES);
+                System.out.println("UC10 Length: 1 foot in inches = " + converted);
     }
 }
