@@ -1,6 +1,6 @@
 public class QuantityMeasurementApp {
 
-    // Quantity class - UC3/UC4
+    // Quantity class with UC3/UC4/UC5/UC6 features
     static class Quantity {
                 private double value;
                 private String unit;
@@ -26,7 +26,6 @@ public class QuantityMeasurementApp {
                             return Double.compare(this.toBaseUnit(), other.toBaseUnit()) == 0;
             }
 
-            // UC5: Unit-to-Unit Conversion (Same Measurement Type)
             public Quantity convertTo(String targetUnit) {
                             double baseValue = this.toBaseUnit();
                             double convertedValue;
@@ -39,6 +38,12 @@ public class QuantityMeasurementApp {
                             return new Quantity(convertedValue, targetUnit);
             }
 
+            // UC6: Addition of Two Length Units (Same Category)
+            public Quantity add(Quantity other) {
+                            double totalInches = this.toBaseUnit() + other.toBaseUnit();
+                            return new Quantity(totalInches, "inches");
+            }
+
             @Override
                 public String toString() {
                                 return value + " " + unit;
@@ -46,23 +51,24 @@ public class QuantityMeasurementApp {
     }
 
     public static void main(String[] args) {
-                // UC1
-            System.out.println("UC1: 3.0ft == 3.0ft? " + (Double.compare(3.0, 3.0) == 0));
-                // UC2
-            Quantity q1 = new Quantity(1.0, "feet");
-                Quantity q2 = new Quantity(12.0, "inches");
-                System.out.println("UC2: 1ft == 12in? " + q1.isEqualTo(q2));
-                // UC3
-            System.out.println("UC3: 1ft == 12in using Quantity class? " + q1.isEqualTo(q2));
-                // UC4
-            Quantity yard = new Quantity(1.0, "yard");
-                System.out.println("UC4: 1 yard == 36 inches? " + yard.isEqualTo(new Quantity(36.0, "inches")));
-                // UC5: Unit-to-Unit Conversion
-            Quantity converted1 = new Quantity(12.0, "inches").convertTo("feet");
-                System.out.println("UC5: 12 inches converted to feet = " + converted1);
-                Quantity converted2 = new Quantity(3.0, "feet").convertTo("inches");
-                System.out.println("UC5: 3 feet converted to inches = " + converted2);
-                Quantity converted3 = new Quantity(1.0, "yard").convertTo("feet");
-                System.out.println("UC5: 1 yard converted to feet = " + converted3);
+                // UC5: Conversion
+            System.out.println("UC5: 12 inches to feet = " + new Quantity(12.0, "inches").convertTo("feet"));
+                System.out.println("UC5: 1 yard to feet = " + new Quantity(1.0, "yard").convertTo("feet"));
+
+            // UC6: Addition of Two Length Units
+            Quantity q1 = new Quantity(2.0, "feet");
+                Quantity q2 = new Quantity(2.0, "feet");
+                Quantity sum = q1.add(q2);
+                System.out.println("UC6: 2 feet + 2 feet = " + sum);
+
+            Quantity q3 = new Quantity(1.0, "feet");
+                Quantity q4 = new Quantity(12.0, "inches");
+                Quantity sum2 = q3.add(q4);
+                System.out.println("UC6: 1 foot + 12 inches = " + sum2);
+
+            Quantity q5 = new Quantity(2.0, "inches");
+                Quantity q6 = new Quantity(2.0, "inches");
+                Quantity sum3 = q5.add(q6);
+                System.out.println("UC6: 2 inches + 2 inches = " + sum3);
     }
 }
